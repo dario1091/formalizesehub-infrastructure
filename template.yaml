@@ -672,6 +672,7 @@ Resources:
         Variables:
           REDISTRIBUCION_QUEUE_URL: !Ref RedistribucionProcessingQueue
           REDISTRIBUCION_EMITIDAS_QUEUE_URL: !Ref RedistribucionEmitidasQueue
+          CAUSACION_DETALLE_QUEUE_URL: !Ref CausacionDetalleQueue
           DIAN_SOAP_QUEUE_URL: !Ref DianSoapQueue
       Events:
         Api:
