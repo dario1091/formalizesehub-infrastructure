@@ -356,6 +356,16 @@ Resources:
               - Effect: Allow
                 Action:
                   - sqs:SendMessage
+                Resource: !GetAtt CausacionDetalleQueue.Arn
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt CausacionDetalleQueue.Arn
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
                 Resource: !GetAtt RedistribucionEmitidasQueue.Arn
               - Effect: Allow
                 Action:
@@ -2298,7 +2308,6 @@ Resources:
           Type: SQS
           Properties:
             Queue: !GetAtt RedistribucionProcessingQueue.Arn
-            BatchSize: 1
             BatchSize: 1
 
   AutoCausacionDetalleFunction:
