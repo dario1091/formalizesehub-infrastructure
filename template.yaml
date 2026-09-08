@@ -3410,12 +3410,12 @@ Resources:
             Path: /formas-pago/{id}
             Method: DELETE
 
-# ── LAMBDAS: CAUSACIÓN DETALLE — BANCOS ─────────────────────────────────────
+# ── LAMBDAS: CAUSACIÓN DETALLE — MÉTODOS DE PAGO ────────────────────────────
 
-  ListarBancosFunction:
+  ListarMetodoPagoFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub formalizese-listar-bancos-${Environment}
+      FunctionName: !Sub formalizese-listar-metodo-pago-${Environment}
       CodeUri: ./placeholder/
       Role: !GetAtt LambdaExecutionRole.Arn
       VpcConfig: !If
@@ -3426,19 +3426,19 @@ Resources:
             - !Ref Subnet1Id
             - !Ref Subnet2Id
         - !Ref AWS::NoValue
-      Description: Lista bancos de la empresa
+      Description: Lista métodos de pago de la empresa
       Events:
         Api:
           Type: Api
           Properties:
             RestApiId: !Ref FormalizeSEApi
-            Path: /bancos
+            Path: /metodo-pago
             Method: GET
 
-  CrearBancoFunction:
+  CrearMetodoPagoFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub formalizese-crear-banco-${Environment}
+      FunctionName: !Sub formalizese-crear-metodo-pago-${Environment}
       CodeUri: ./placeholder/
       Role: !GetAtt LambdaExecutionRole.Arn
       VpcConfig: !If
@@ -3449,19 +3449,19 @@ Resources:
             - !Ref Subnet1Id
             - !Ref Subnet2Id
         - !Ref AWS::NoValue
-      Description: Crea un nuevo banco
+      Description: Crea un nuevo método de pago
       Events:
         Api:
           Type: Api
           Properties:
             RestApiId: !Ref FormalizeSEApi
-            Path: /bancos
+            Path: /metodo-pago
             Method: POST
 
-  ActualizarBancoFunction:
+  ActualizarMetodoPagoFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub formalizese-actualizar-banco-${Environment}
+      FunctionName: !Sub formalizese-actualizar-metodo-pago-${Environment}
       CodeUri: ./placeholder/
       Role: !GetAtt LambdaExecutionRole.Arn
       VpcConfig: !If
@@ -3472,19 +3472,19 @@ Resources:
             - !Ref Subnet1Id
             - !Ref Subnet2Id
         - !Ref AWS::NoValue
-      Description: Actualiza un banco existente
+      Description: Actualiza un método de pago existente
       Events:
         Api:
           Type: Api
           Properties:
             RestApiId: !Ref FormalizeSEApi
-            Path: /bancos/{id}
+            Path: /metodo-pago/{id}
             Method: PUT
 
-  EliminarBancoFunction:
+  EliminarMetodoPagoFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub formalizese-eliminar-banco-${Environment}
+      FunctionName: !Sub formalizese-eliminar-metodo-pago-${Environment}
       CodeUri: ./placeholder/
       Role: !GetAtt LambdaExecutionRole.Arn
       VpcConfig: !If
@@ -3495,13 +3495,13 @@ Resources:
             - !Ref Subnet1Id
             - !Ref Subnet2Id
         - !Ref AWS::NoValue
-      Description: Elimina lógicamente un banco
+      Description: Elimina lógicamente un método de pago
       Events:
         Api:
           Type: Api
           Properties:
             RestApiId: !Ref FormalizeSEApi
-            Path: /bancos/{id}
+            Path: /metodo-pago/{id}
             Method: DELETE
 
 # ─────────────────────────────────────────────────────────────────────────────
