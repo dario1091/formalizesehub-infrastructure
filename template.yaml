@@ -283,6 +283,23 @@ Resources:
         deadLetterTargetArn: !GetAtt RedistribucionEmitidasDLQ.Arn
         maxReceiveCount: 3
 
+  CausacionDetalleDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub formalizese-causacion-detalle-dlq-${Environment}
+      MessageRetentionPeriod: 1209600  # 14 días
+
+  CausacionDetalleQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub formalizese-causacion-detalle-${Environment}
+      VisibilityTimeout: 900           # 15 min — >= timeout de AutoCausacionDetalleFunction
+      MessageRetentionPeriod: 345600   # 4 días
+      ReceiveMessageWaitTimeSeconds: 20
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt CausacionDetalleDLQ.Arn
+        maxReceiveCount: 3
+
   # ── IAM ROLE PARA LAMBDAS ────────────────────────────────────────────────────
   # Permisos mínimos necesarios. Para agregar permisos a una Lambda específica,
   # usar la propiedad Policies directamente en el recurso AWS::Serverless::Function
@@ -2126,6 +2143,63 @@ Resources:
             Path: /facturas-redistribucion-emitidas
             Method: GET
 
+  # ── REDISTRIBUCIÓN DETALLE (Inventario TNS) ────────────────────────────────
+
+  ListarCausacionDetalleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub formalizese-listar-causacion-detalle-${Environment}
+      CodeUri: ./placeholder/
+      Role: !GetAtt LambdaExecutionRole.Arn
+      VpcConfig: !If
+        - UseVpcCondition
+        - SecurityGroupIds:
+            - !Ref LambdaSecurityGroup
+          SubnetIds:
+            - !Ref Subnet1Id
+            - !Ref Subnet2Id
+        - !Ref AWS::NoValue
+      Description: Lista causaciones a detalle (inventario) y retorna detalle por ID con ítems
+      Timeout: 30
+      Events:
+        ApiList:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FormalizeSEApi
+            Path: /causacion-detalle
+            Method: GET
+        ApiById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FormalizeSEApi
+            Path: /causacion-detalle/{id}
+            Method: GET
+
+  GenerarDetalleTnsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub formalizese-generar-detalle-tns-${Environment}
+      CodeUri: ./placeholder/
+      Role: !GetAtt LambdaExecutionRole.Arn
+      VpcConfig: !If
+        - UseVpcCondition
+        - SecurityGroupIds:
+            - !Ref LambdaSecurityGroup
+          SubnetIds:
+            - !Ref Subnet1Id
+            - !Ref Subnet2Id
+        - !Ref AWS::NoValue
+      Description: Genera archivo Excel TNS (tipo 1 + tipo 3) desde causación a detalle aprobada
+      Timeout: 60
+      MemorySize: 512
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FormalizeSEApi
+            Path: /causacion-detalle/{id}/exportar-tns
+            Method: GET
+
   ActualizarFacturasRedistribucionFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -2225,6 +2299,30 @@ Resources:
           Properties:
             Queue: !GetAtt RedistribucionProcessingQueue.Arn
             BatchSize: 1
+            BatchSize: 1
+
+  AutoCausacionDetalleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub formalizese-auto-causacion-detalle-${Environment}
+      CodeUri: ./placeholder/
+      Role: !GetAtt LambdaExecutionRole.Arn
+      VpcConfig: !If
+        - UseVpcCondition
+        - SecurityGroupIds:
+            - !Ref LambdaSecurityGroup
+          SubnetIds:
+            - !Ref Subnet1Id
+            - !Ref Subnet2Id
+        - !Ref AWS::NoValue
+      Description: Procesa lote de facturas por detalle (inventario) - genera causación a detalle (trigger SQS)
+      Timeout: 120
+      MemorySize: 512
+      Events:
+        SQSTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt CausacionDetalleQueue.Arn
             BatchSize: 1
 
   DetectarConsecutivoFunction:
@@ -2358,6 +2456,7 @@ Resources:
         Variables:
           S3_BUCKET_NAME: !Ref InvoicesBucket
           REDISTRIBUCION_QUEUE_URL: !Ref RedistribucionProcessingQueue
+          CAUSACION_DETALLE_QUEUE_URL: !Ref CausacionDetalleQueue
       Events:
         SQSTrigger:
           Type: SQS
@@ -3440,3 +3539,15 @@ Outputs:
     Value: !GetAtt RedistribucionProcessingQueue.Arn
     Export:
       Name: !Sub FormalizeSEHub-RedistribucionProcessingQueueArn-${Environment}
+
+  CausacionDetalleQueueUrl:
+    Description: URL de la cola SQS de causación a detalle (inventario)
+    Value: !Ref CausacionDetalleQueue
+    Export:
+      Name: !Sub FormalizeSEHub-CausacionDetalleQueueUrl-${Environment}
+
+  CausacionDetalleQueueArn:
+    Description: ARN de la cola SQS de causación a detalle (inventario)
+    Value: !GetAtt CausacionDetalleQueue.Arn
+    Export:
+      Name: !Sub FormalizeSEHub-CausacionDetalleQueueArn-${Environment}
