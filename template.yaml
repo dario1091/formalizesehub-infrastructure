@@ -2210,6 +2210,12 @@ Resources:
             RestApiId: !Ref FormalizeSEApi
             Path: /causacion-detalle/{id}/exportar-tns
             Method: GET
+        ApiBatch:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FormalizeSEApi
+            Path: /causacion-detalle/exportar-tns
+            Method: POST
 
   ActualizarFacturasRedistribucionFunction:
     Type: AWS::Serverless::Function
